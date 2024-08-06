@@ -1,37 +1,175 @@
-// src/components/Player.tsx
-
 import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { Vector3, PerspectiveCamera, Mesh } from 'three';
 import Bullet from './Bullet';
 import Bomb from './Bomb';
 import Particles from './Particles';
-import Enemy from './Enemy';
-import PlayerModel from './PlayerModel';
 import gunshotSound from '../assets/audio/gunshot_1.mp3';
 
+const PlayerModel: React.FC<{ isMoving: boolean }> = ({ isMoving }) => {
+  // Create refs for each limb segment to animate
+  const upperLeftArmRef = useRef<Mesh>(null);
+  const lowerLeftArmRef = useRef<Mesh>(null);
+  const upperRightArmRef = useRef<Mesh>(null);
+  const lowerRightArmRef = useRef<Mesh>(null);
+  const upperLeftLegRef = useRef<Mesh>(null);
+  const lowerLeftLegRef = useRef<Mesh>(null);
+  const upperRightLegRef = useRef<Mesh>(null);
+  const lowerRightLegRef = useRef<Mesh>(null);
+  const torsoRef = useRef<Mesh>(null);
+
+  useFrame(({ clock }) => {
+    const time = clock.getElapsedTime();
+    const swingSpeed = 6; // Swing speed for walking/running animation
+    const armSwing = Math.sin(time * swingSpeed) * 0.8; // Arm swing amplitude
+    const legSwing = Math.cos(time * swingSpeed) * 0.8; // Leg swing amplitude
+    const lowerLimbSwing = Math.sin(time * swingSpeed) * 0.5; // Lower limb swing amplitude
+    const torsoTilt = Math.sin(time * swingSpeed) * 0.05;
+
+    if (isMoving) {
+      // Torso slight forward tilt
+      if (torsoRef.current) {
+        torsoRef.current.rotation.z = torsoTilt;
+      }
+
+      // Arms swing back and forth
+      if (upperLeftArmRef.current && upperRightArmRef.current) {
+        upperLeftArmRef.current.rotation.x = armSwing;
+        upperRightArmRef.current.rotation.x = -armSwing;
+      }
+
+      // Lower arms swing slightly for natural movement
+      if (lowerLeftArmRef.current && lowerRightArmRef.current) {
+        lowerLeftArmRef.current.rotation.x = -lowerLimbSwing;
+        lowerRightArmRef.current.rotation.x = lowerLimbSwing;
+      }
+
+      // Legs swing opposite to arms
+      if (upperLeftLegRef.current && upperRightLegRef.current) {
+        upperLeftLegRef.current.rotation.x = -legSwing;
+        upperRightLegRef.current.rotation.x = legSwing;
+      }
+
+      // Lower legs swing slightly for natural movement
+      if (lowerLeftLegRef.current && lowerRightLegRef.current) {
+        lowerLeftLegRef.current.rotation.x = lowerLimbSwing;
+        lowerRightLegRef.current.rotation.x = -lowerLimbSwing;
+      }
+    } else {
+      // Reset limb positions when not moving
+      if (torsoRef.current) {
+        torsoRef.current.rotation.z = 0;
+      }
+
+      if (upperLeftArmRef.current && upperRightArmRef.current) {
+        upperLeftArmRef.current.rotation.x = 0;
+        upperRightArmRef.current.rotation.x = 0;
+      }
+
+      if (lowerLeftArmRef.current && lowerRightArmRef.current) {
+        lowerLeftArmRef.current.rotation.x = 0;
+        lowerRightArmRef.current.rotation.x = 0;
+      }
+
+      if (upperLeftLegRef.current && upperRightLegRef.current) {
+        upperLeftLegRef.current.rotation.x = 0;
+        upperRightLegRef.current.rotation.x = 0;
+      }
+
+      if (lowerLeftLegRef.current && lowerRightLegRef.current) {
+        lowerLeftLegRef.current.rotation.x = 0;
+        lowerRightLegRef.current.rotation.x = 0;
+      }
+    }
+  });
+
+  return (
+    <group>
+      {/* Head */}
+      <mesh position={[0, 1.8, 0]}>
+        <sphereGeometry args={[0.3, 32, 32]} />
+        <meshStandardMaterial color="peachpuff" />
+      </mesh>
+
+      {/* Torso */}
+      <mesh ref={torsoRef} position={[0, 1, 0]}>
+        <boxGeometry args={[0.6, 1, 0.3]} />
+        <meshStandardMaterial color="blue" />
+      </mesh>
+
+      {/* Upper Left Arm */}
+      <mesh ref={upperLeftArmRef} position={[-0.37, 1.3, 0]}>
+        <boxGeometry args={[0.15, 0.4, 0.2]} />
+        <meshStandardMaterial color="blue" />
+      </mesh>
+
+      {/* Lower Left Arm */}
+      <mesh ref={lowerLeftArmRef} position={[-0.37, 1, 0]}>
+        <boxGeometry args={[0.15, 0.4, 0.2]} />
+        <meshStandardMaterial color="blue" />
+      </mesh>
+
+      {/* Upper Right Arm */}
+      <mesh ref={upperRightArmRef} position={[0.37, 1.3, 0]}>
+        <boxGeometry args={[0.15, 0.4, 0.2]} />
+        <meshStandardMaterial color="blue" />
+      </mesh>
+
+      {/* Lower Right Arm */}
+      <mesh ref={lowerRightArmRef} position={[0.37, 1, 0]}>
+        <boxGeometry args={[0.15, 0.4, 0.2]} />
+        <meshStandardMaterial color="blue" />
+      </mesh>
+
+      {/* Upper Left Leg */}
+      <mesh ref={upperLeftLegRef} position={[-0.2, 0.5, 0]}>
+        <boxGeometry args={[0.2, 0.5, 0.2]} />
+        <meshStandardMaterial color="blue" />
+      </mesh>
+
+      {/* Lower Left Leg */}
+      <mesh ref={lowerLeftLegRef} position={[-0.2, 0, 0]}>
+        <boxGeometry args={[0.2, 0.5, 0.2]} />
+        <meshStandardMaterial color="blue" />
+      </mesh>
+
+      {/* Upper Right Leg */}
+      <mesh ref={upperRightLegRef} position={[0.2, 0.5, 0]}>
+        <boxGeometry args={[0.2, 0.5, 0.2]} />
+        <meshStandardMaterial color="blue" />
+      </mesh>
+
+      {/* Lower Right Leg */}
+      <mesh ref={lowerRightLegRef} position={[0.2, 0, 0]}>
+        <boxGeometry args={[0.2, 0.5, 0.2]} />
+        <meshStandardMaterial color="blue" />
+      </mesh>
+    </group>
+  );
+};
+
 const Player: React.FC = () => {
-  const playerRef = useRef<Mesh | null>(null);
-  const [bullets, setBullets] = useState<{ position: Vector3; direction: Vector3 }[]>([]);
+  const playerRef = useRef<any>(null);
+  const [bullets, setBullets] = useState<any[]>([]);
   const [bombs, setBombs] = useState<Vector3[]>([]);
   const [explosions, setExplosions] = useState<Vector3[]>([]);
-  const [enemies, setEnemies] = useState<{ position: Vector3; hp: number }[]>([]);
-  const [playerHealth, setPlayerHealth] = useState<number>(10);
   const { camera, gl } = useThree();
   const speed = 0.1;
   const rotationSpeed = 0.05;
   const direction = useRef(new Vector3());
-  const playerPosition = useRef(new Vector3());
+  const playerPosition = new Vector3();
   const rotation = useRef(0);
   const zoomSensitivity = 0.1;
   const [isMoving, setIsMoving] = useState<boolean>(false);
 
+  // Track pressed keys
   const keysPressed = useRef<{ [key: string]: boolean }>({});
 
+  // Jumping state
   const isJumping = useRef(false);
   const verticalVelocity = useRef(0);
-  const gravity = 0.015;
-  const jumpStrength = 0.5;
+  const gravity = 0.015; // Gravity strength
+  const jumpStrength = 0.5; // Initial jump velocity
 
   const gunshotAudio = useRef(new Audio(gunshotSound));
 
@@ -44,7 +182,10 @@ const Player: React.FC = () => {
 
   const handleExplode = (position: Vector3) => {
     setExplosions((prevExplosions) => [...prevExplosions, position]);
-    setBombs((prevBombs) => prevBombs.filter((bomb) => !bomb.equals(position)));
+    // Remove the bomb from the state
+    setBombs((prevBombs) =>
+      prevBombs.filter((bomb) => !bomb.equals(position))
+    );
   };
 
   const updateMovement = useCallback(() => {
@@ -107,7 +248,7 @@ const Player: React.FC = () => {
         camera.fov = Math.min(
           Math.max(camera.fov + event.deltaY * zoomSensitivity, 50),
           100
-        );
+        ); // Adjust FOV limits
         camera.updateProjectionMatrix();
       }
     },
@@ -123,27 +264,21 @@ const Player: React.FC = () => {
     gl.domElement.addEventListener('mousedown', handleMouseClick);
     gl.domElement.addEventListener('wheel', handleWheel);
 
+    // Set initial focus on the canvas
     gl.domElement.tabIndex = 0;
     gl.domElement.focus();
 
+    // Set initial FOV to maximum
     if (camera instanceof PerspectiveCamera) {
-      camera.fov = 100;
+      camera.fov = 100; // Set this to your maximum FOV value
       camera.updateProjectionMatrix();
     }
-
-    const interval = setInterval(() => {
-      const x = (Math.random() - 0.5) * 20;
-      const z = (Math.random() - 0.5) * 20;
-      const newEnemyPosition = new Vector3(x, 1, z);
-      setEnemies((prevEnemies) => [...prevEnemies, { position: newEnemyPosition, hp: 3 }]);
-    }, 5000);
 
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
       gl.domElement.removeEventListener('mousedown', handleMouseClick);
       gl.domElement.removeEventListener('wheel', handleWheel);
-      clearInterval(interval);
     };
   }, [gl, handleInput, handleMouseClick, handleWheel, camera]);
 
@@ -160,81 +295,29 @@ const Player: React.FC = () => {
 
       playerRef.current.position.add(forward).add(strafe);
 
+      // Apply gravity and vertical movement
       if (isJumping.current || playerRef.current.position.y > 1) {
-        verticalVelocity.current -= gravity;
+        // Allow player to drop to terrain
+        verticalVelocity.current -= gravity; // Apply gravity
         playerRef.current.position.y += verticalVelocity.current;
 
+        // Check if player has landed on the ground
         if (playerRef.current.position.y <= 1) {
+          // Adjusted to player's initial position
           playerRef.current.position.y = 1;
           verticalVelocity.current = 0;
           isJumping.current = false;
         }
       }
 
-      playerRef.current.getWorldPosition(playerPosition.current);
+      playerRef.current.getWorldPosition(playerPosition);
 
       const cameraOffset = new Vector3(0, 3, 5).applyQuaternion(
         playerRef.current.quaternion
       );
-      camera.position.copy(playerPosition.current).add(cameraOffset);
-      camera.lookAt(playerPosition.current);
+      camera.position.copy(playerPosition).add(cameraOffset);
+      camera.lookAt(playerPosition);
     }
-  });
-
-  // Handle bullet hitting an enemy
-  const handleBulletHit = (bulletPosition: Vector3) => {
-    setEnemies((prevEnemies) => {
-      return prevEnemies.map((enemy, index) => {
-        if (bulletPosition.distanceTo(enemy.position) < 1.5) {
-          enemy.hp -= 1;
-          if (enemy.hp <= 0) {
-            setEnemies((prevEnemies) => prevEnemies.filter((_, i) => i !== index));
-          }
-          return { ...enemy, hp: enemy.hp - 1 };
-        }
-        return enemy;
-      });
-    });
-  };
-
-  // Handle enemy touching the player
-  const handleEnemyCollision = (enemyIndex: number) => {
-    setPlayerHealth((prevHealth) => Math.max(0, prevHealth - 1));
-    const newEnemies = [...enemies];
-    const enemy = newEnemies[enemyIndex];
-    // Push enemy away from the player
-    const pushDirection = new Vector3()
-      .subVectors(enemy.position, playerPosition.current)
-      .normalize()
-      .multiplyScalar(2); // Adjust push strength as needed
-    enemy.position.add(pushDirection);
-    setEnemies(newEnemies);
-  };
-
-  // Update bullets and check for collisions
-  useFrame(() => {
-    setBullets((prevBullets) => {
-      return prevBullets.filter((bullet) => {
-        let hit = false;
-        setEnemies((prevEnemies) => {
-          return prevEnemies.map((enemy, index) => {
-            if (bullet.position.distanceTo(enemy.position) < 1.5) {
-              handleBulletHit(bullet.position);
-              hit = true;
-            }
-            return enemy;
-          });
-        });
-        return !hit; // Remove bullet if it hit
-      });
-    });
-
-    // Check for collisions between player and enemies
-    enemies.forEach((enemy, index) => {
-      if (playerPosition.current.distanceTo(enemy.position) < 1.5) { // Adjust distance as necessary
-        handleEnemyCollision(index);
-      }
-    });
   });
 
   return (
@@ -246,9 +329,9 @@ const Player: React.FC = () => {
         <Bullet
           key={index}
           position={bullet.position}
-          direction={bullet.direction}
-          onCollision={(position) => handleBulletHit(position)}
-        />
+          direction={bullet.direction} onHit={function (enemyIndex: number): void {
+            throw new Error("Function not implemented.");
+          } }        />
       ))}
       {bombs.map((bombPosition, index) => (
         <Bomb key={index} position={bombPosition} onExplode={handleExplode} />
@@ -264,18 +347,8 @@ const Player: React.FC = () => {
           }}
         />
       ))}
-      {enemies.map((enemy, index) => (
-        <Enemy
-          key={index}
-          position={enemy.position}
-          playerPosition={playerPosition.current}
-          onRemove={() => handleBulletHit(enemy.position)}
-          onHit={() => handleBulletHit(enemy.position)}
-        />
-      ))}
-      {/* Move the health bar display outside the Canvas */}
     </>
   );
 };
 
-export default Player;
+export default Player

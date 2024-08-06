@@ -5,7 +5,6 @@ import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Environment } from '@react-three/drei';
 import Player from './Player';
 import Terrain from './Terrain';
-// import '..styles.scss'; // Make sure to import any global styles here
 
 // Import the EXR file
 import environmentMap from '../assets/environments/rosendal_plains_2_4k.exr';
@@ -16,15 +15,14 @@ const Scene: React.FC = () => {
 
   return (
     <Canvas camera={{ position: [0, 5, 10], fov: 60 }}>
-      <ambientLight intensity={0.5} />
-      <directionalLight position={[10, 10, 5]} intensity={0.8} />
-      
       {/* Use the Environment component to load the EXR file */}
       <Environment
         files={environmentMap} // Use the imported EXR file
         background // Use EXR as the background
       />
 
+      <ambientLight intensity={0.5} />
+      <directionalLight position={[10, 10, 5]} intensity={0.8} />
       <Player />
 
       {/* Render the grid of terrain */}
