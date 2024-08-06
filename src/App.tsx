@@ -1,6 +1,7 @@
 import React from "react"
 import Scene from "./components/Scene"
 import './App.scss'
+import './styles/styles.scss';
 
 const App: React.FC = () => {
   return (
